@@ -3,7 +3,6 @@ use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 use std::net::{Ipv4Addr, SocketAddrV4};
 
 pub fn run() -> Result<u8> {
-
     // Build IP header
     let mut ip_header = b"\x45\x00\x00\x1c".to_vec(); // IP version | IHL | Type of service | Total length
     ip_header.extend_from_slice(b"\xab\xcd\x00\x00"); // Identification | Flags | Fragment Offset
@@ -18,14 +17,13 @@ pub fn run() -> Result<u8> {
     // Concatenate the above
     ip_header.extend_from_slice(icmp_header.as_slice());
 
-    println!("{:?}", ip_header);
+    // println!("{:?}", ip_header);
 
-    let socket = Socket::new(Domain::IPV4, Type::RAW, Some(Protocol::ICMPV4))?;
     let address = SockAddr::from(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0));
+    let socket = Socket::new(Domain::IPV4, Type::RAW, Some(Protocol::ICMPV4))?;
+    socket.set_header_included(true)?;
 
     socket.send_to(ip_header.as_slice(), &address)?;
-
-    // The kernel is creating the IP header for you. You probably want that, but if you don't, you set the IP_HDRINCL flag with Socket::set_header_included
 
     Ok(0)
 }
